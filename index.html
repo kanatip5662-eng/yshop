@@ -295,7 +295,12 @@ body{background:var(--g50);font-family:'Sarabun',sans-serif;color:var(--g800);mi
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.g{background:var(--green)}.toast.r{background:var(--red)}.toast.b{background:var(--blue)}
 
-@media(max-width:600px){
+.loading-overlay{position:fixed;inset:0;background:linear-gradient(135deg,var(--gd),var(--green));z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;gap:12px;transition:opacity .4s}
+.loading-overlay.hide{opacity:0;pointer-events:none}
+.load-spin{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
+.load-txt{font-family:'Prompt',sans-serif;font-size:.95rem;font-weight:600}
+
+
   .grid{grid-template-columns:repeat(2,1fr);gap:10px}
   .mrow{grid-template-columns:1fr}
   .cart-side{width:100%}
@@ -306,6 +311,13 @@ body{background:var(--g50);font-family:'Sarabun',sans-serif;color:var(--g800);mi
 </style>
 </head>
 <body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadOverlay">
+  <div style="font-size:2.5rem">🛍️</div>
+  <div class="load-spin"></div>
+  <div class="load-txt">กำลังโหลด MyShop...</div>
+</div>
 
 <!-- ════════════════════ AUTH ════════════════════ -->
 <div id="authScreen" class="screen active">
@@ -353,6 +365,7 @@ body{background:var(--g50);font-family:'Sarabun',sans-serif;color:var(--g800);mi
         <input type="password" class="form-i" id="rgPass2" placeholder="••••••••" onkeydown="if(event.key==='Enter')doRegister()">
       </div>
       <button class="btn-auth" onclick="doRegister()">✅ สมัครสมาชิก</button>
+      <p style="text-align:center;font-size:.7rem;color:var(--g400);margin-top:8px" id="userCountHint"></p>
     </div>
 
     <div class="owner-link">
@@ -645,24 +658,79 @@ const OWNER_PASS  = 'owner1234';
 const OWNER_NAME  = 'เจ้าของร้าน';
 // ใส่ Anthropic API key ที่นี่เพื่อใช้ AI ตรวจสลิป (ไม่บังคับ)
 const AI_API_KEY  = '';
+const MAX_USERS   = 100; // จำกัดสูงสุด 100 อีเมล
 
 /* ════════════════════════════════════════
-   STORAGE
+   SHARED STORAGE (ซิงค์ข้ามเครื่อง)
 ════════════════════════════════════════ */
+// ข้อมูลในหน่วยความจำ
+let users    = [];
+let products = [];
+let chats    = {};
+let orders   = [];
+// cart และ curUser ยังเก็บใน localStorage เฉพาะเครื่อง
 const LS  = (k,d) => { try{return JSON.parse(localStorage.getItem(k))??d}catch{return d} };
 const LSs = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+let cart    = LS('ms_cart', []);
+let curUser = LS('ms_cur',  null);
 
-let users    = LS('ms_users', []);
-let products = LS('ms_prods', []);
-let cart     = LS('ms_cart',  []);
-let chats    = LS('ms_chats', {});
-let orders   = LS('ms_orders',[]);
-let curUser  = LS('ms_cur',   null);
+let _saveTimer = null;
+let _loading = false;
 
-function save(){
-  LSs('ms_users',users); LSs('ms_prods',products);
-  LSs('ms_cart',cart); LSs('ms_chats',chats); LSs('ms_orders',orders);
+// โหลดข้อมูลจาก shared storage
+async function loadShared(){
+  try {
+    const [uRes, pRes, cRes, oRes] = await Promise.all([
+      window.storage.get('ms_users', true).catch(()=>null),
+      window.storage.get('ms_prods', true).catch(()=>null),
+      window.storage.get('ms_chats', true).catch(()=>null),
+      window.storage.get('ms_orders',true).catch(()=>null),
+    ]);
+    users    = uRes  ? JSON.parse(uRes.value)  : [];
+    products = pRes  ? JSON.parse(pRes.value)  : [];
+    chats    = cRes  ? JSON.parse(cRes.value)  : {};
+    orders   = oRes  ? JSON.parse(oRes.value)  : [];
+  } catch(e){
+    console.warn('loadShared error', e);
+    users=[]; products=[]; chats={}; orders=[];
+  }
 }
+
+// บันทึกไปยัง shared storage (debounced)
+function save(){
+  if(_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(()=>_doSave(), 400);
+}
+
+async function _doSave(){
+  try {
+    await Promise.all([
+      window.storage.set('ms_users',  JSON.stringify(users),    true),
+      window.storage.set('ms_prods',  JSON.stringify(products),  true),
+      window.storage.set('ms_chats',  JSON.stringify(chats),     true),
+      window.storage.set('ms_orders', JSON.stringify(orders),    true),
+    ]);
+  } catch(e){ console.warn('save error', e); }
+}
+
+// บันทึก cart เฉพาะเครื่อง (ไม่ต้องซิงค์)
+function saveCart(){ LSs('ms_cart', cart); }
+
+// รีเฟรชข้อมูลทุก 15 วินาที (real-time sync)
+async function syncLoop(){
+  if(document.hidden) return;
+  try {
+    const [pRes, oRes, cRes] = await Promise.all([
+      window.storage.get('ms_prods',  true).catch(()=>null),
+      window.storage.get('ms_orders', true).catch(()=>null),
+      window.storage.get('ms_chats',  true).catch(()=>null),
+    ]);
+    if(pRes){ const np = JSON.parse(pRes.value); if(JSON.stringify(np)!==JSON.stringify(products)){ products=np; if(curUser) renderProds(); updateStats(); } }
+    if(oRes){ const no = JSON.parse(oRes.value); if(JSON.stringify(no)!==JSON.stringify(orders)){ orders=no; updateStats(); } }
+    if(cRes){ const nc = JSON.parse(cRes.value); if(JSON.stringify(nc)!==JSON.stringify(chats)){ chats=nc; if(curUser&&chatOpen) renderChatMsgs(); if(curUser?.role==='owner'&&ownerChatOpen) renderOwnerChatTabs(); } }
+  } catch(e){}
+}
+setInterval(syncLoop, 15000);
 
 /* ════════════════════════════════════════
    AUTH
@@ -691,6 +759,9 @@ function switchTab(tab){
   } else {
     document.getElementById('regForm').style.display = 'block';
     tabs[1].classList.add('active');
+    // แสดงจำนวนสมาชิก
+    const hint = document.getElementById('userCountHint');
+    if(hint) hint.textContent = `สมาชิกปัจจุบัน: ${users.length}/${MAX_USERS} คน`;
   }
 }
 
@@ -700,11 +771,14 @@ function showMsg(m, type='err'){
 }
 function clearMsg(){ document.getElementById('authMsg').style.display = 'none'; }
 
-function doLogin(){
+async function doLogin(){
   const email = document.getElementById('liEmail').value.trim().toLowerCase();
   const pass  = document.getElementById('liPass').value;
   clearMsg();
   if(!email||!pass){ showMsg('กรุณากรอกข้อมูลให้ครบ'); return; }
+  showMsg('⏳ กำลังเข้าสู่ระบบ...','info');
+  await loadShared();
+  clearMsg();
   if(email === OWNER_EMAIL){
     if(pass !== OWNER_PASS){ showMsg('รหัสผ่านเจ้าของร้านไม่ถูกต้อง'); return; }
     curUser = {email:OWNER_EMAIL, name:OWNER_NAME, role:'owner'};
@@ -716,7 +790,7 @@ function doLogin(){
   LSs('ms_cur', curUser); enterShop();
 }
 
-function doRegister(){
+async function doRegister(){
   const name  = document.getElementById('rgName').value.trim();
   const email = document.getElementById('rgEmail').value.trim().toLowerCase();
   const pass  = document.getElementById('rgPass').value;
@@ -727,7 +801,11 @@ function doRegister(){
   if(pass.length < 6){ showMsg('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
   if(pass !== pass2){ showMsg('รหัสผ่านไม่ตรงกัน'); return; }
   if(email === OWNER_EMAIL){ showMsg('ไม่สามารถใช้อีเมลนี้ได้'); return; }
+  showMsg('⏳ กำลังสมัครสมาชิก...','info');
+  await loadShared();
+  clearMsg();
   if(users.find(u=>u.email===email)){ showMsg('อีเมลนี้ถูกใช้งานแล้ว'); return; }
+  if(users.length >= MAX_USERS){ showMsg(`ขณะนี้มีสมาชิกครบ ${MAX_USERS} คนแล้ว ไม่สามารถสมัครเพิ่มได้`); return; }
   users.push({email, pass, name}); save();
   curUser = {email, name, role:'customer'};
   LSs('ms_cur', curUser); enterShop();
@@ -755,7 +833,7 @@ function enterShop(){
 
 function doLogout(){
   curUser = null; cart = [];
-  LSs('ms_cur', null); LSs('ms_cart', []);
+  LSs('ms_cur', null); saveCart();
   // hide chat wins
   document.getElementById('chatFab').classList.remove('show');
   document.getElementById('ochatFab').classList.remove('show');
@@ -767,7 +845,19 @@ function doLogout(){
 }
 
 // Auto-login on load
-if(curUser){ enterShop(); }
+(async ()=>{
+  const overlay = document.getElementById('loadOverlay');
+  if(curUser){
+    await loadShared();
+    overlay.classList.add('hide');
+    setTimeout(()=>overlay.remove(), 500);
+    enterShop();
+  } else {
+    await loadShared(); // โหลดข้อมูลล่วงหน้า
+    overlay.classList.add('hide');
+    setTimeout(()=>overlay.remove(), 500);
+  }
+})();
 
 /* ════════════════════════════════════════
    PRODUCTS
@@ -930,7 +1020,7 @@ function addCart(id){
   const ex = cart.find(c=>c.id===id);
   if(ex){ if(ex.qty>=p.stock){toast('⚠️ สต็อกไม่พอ');return;} ex.qty++; }
   else cart.push({id, name:p.name, price:p.price, qty:1, img:p.imgs?.[0]||null});
-  save(); renderCart(); toast('🛒 เพิ่มลงตะกร้าแล้ว','g');
+  save(); saveCart(); renderCart(); toast('🛒 เพิ่มลงตะกร้าแล้ว','g');
 }
 function renderCart(){
   const el    = document.getElementById('cartItems');
@@ -964,9 +1054,9 @@ function chQty(id,d){
   if(!it)return; it.qty+=d;
   if(it.qty<=0) cart=cart.filter(c=>c.id!==id);
   else if(p&&it.qty>p.stock){it.qty=p.stock;toast('⚠️ สต็อกไม่พอ');}
-  save(); renderCart();
+  saveCart(); renderCart();
 }
-function rmCart(id){ cart=cart.filter(c=>c.id!==id); save(); renderCart(); }
+function rmCart(id){ cart=cart.filter(c=>c.id!==id); saveCart(); renderCart(); }
 function openCart(){ document.getElementById('cartSide').classList.add('open'); document.getElementById('cartBack').classList.add('open'); }
 function closeCart(){ document.getElementById('cartSide').classList.remove('open'); document.getElementById('cartBack').classList.remove('open'); }
 
@@ -1108,7 +1198,7 @@ function confirmPay(){
   const sysMsg = `🧾 <b>ออเดอร์ใหม่!</b> ${curUser.name} ชำระ ฿${fmt(total)} — ${cart.map(c=>c.name).join(', ')}`;
   addChatMsg(curUser.email, 'system', sysMsg);
   // Clear cart
-  cart = []; save();
+  cart = []; save(); saveCart();
   renderCart(); renderProds(); updateStats();
   document.getElementById('payContent').style.display = 'none';
   document.getElementById('paySuccess').style.display = 'block';
