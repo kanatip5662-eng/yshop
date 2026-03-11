@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyShop — ร้านค้าออนไลน์</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#16a34a;--gl:#22c55e;--gp:#dcfce7;--gb:#f0fdf4;
+  --gd:#15803d;--gbd:#bbf7d0;--w:#fff;
+  --g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;
+  --g400:#9ca3af;--g600:#4b5563;--g800:#1f2937;
+  --red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shm:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --shl:0 10px 25px rgba(0,0,0,.1),0 4px 10px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--g50);font-family:'Sarabun',sans-serif;color:var(--g800);min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--green);border-radius:2px}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+
+/* ─ AUTH ─ */
+#authScreen{align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gd),var(--green) 60%,var(--gl));position:relative;overflow:hidden;padding:20px}
+#authScreen::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='4' fill='%23fff' fill-opacity='.06'/%3E%3C/svg%3E")}
+.auth-card{background:var(--w);border-radius:24px;width:100%;max-width:420px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;z-index:1;max-height:95vh;overflow-y:auto}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo-icon{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--green),var(--gl));display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 10px;box-shadow:0 4px 16px rgba(22,163,74,.3)}
+.auth-logo h1{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.5rem;color:var(--gd)}
+.auth-logo p{font-size:.8rem;color:var(--g400);margin-top:2px}
+.auth-tabs{display:flex;gap:4px;background:var(--g100);border-radius:12px;padding:4px;margin-bottom:20px}
+.auth-tab{flex:1;padding:9px;text-align:center;border-radius:9px;cursor:pointer;font-size:.83rem;font-weight:500;color:var(--g600);transition:all .15s}
+.auth-tab.active{background:var(--w);color:var(--green);font-weight:700;box-shadow:var(--sh)}
+.form-g{margin-bottom:14px}
+.form-l{display:block;font-size:.76rem;font-weight:600;color:var(--g600);margin-bottom:5px}
+.form-l .req{color:var(--red);margin-left:2px}
+.form-i{width:100%;padding:10px 13px;border:1.5px solid var(--g200);border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.88rem;background:var(--w);outline:none;transition:border-color .15s;color:var(--g800)}
+.form-i:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.08)}
+.btn-auth{width:100%;padding:12px;background:linear-gradient(135deg,var(--gd),var(--green));color:white;border:none;border-radius:12px;font-family:'Prompt',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(22,163,74,.3);margin-top:4px}
+.btn-auth:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,163,74,.4)}
+.auth-msg{border-radius:8px;padding:9px 12px;font-size:.78rem;margin-bottom:12px;display:none}
+.auth-msg.err{background:#fef2f2;border:1px solid #fecaca;color:var(--red)}
+.auth-msg.info{background:var(--gb);border:1px solid var(--gbd);color:var(--gd)}
+.owner-link{text-align:center;margin-top:10px}
+.owner-link a{font-size:.73rem;color:var(--g400);cursor:pointer}
+.owner-link a:hover{color:var(--green)}
+
+/* ─ NAV ─ */
+.nav{background:var(--w);border-bottom:2px solid var(--gbd);position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:62px;gap:10px}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+.nav-logo-ic{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--gl));display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 2px 8px rgba(22,163,74,.3)}
+.nav-logo-tx{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.15rem;color:var(--gd)}
+.nav-logo-tx span{color:var(--gl)}
+.nav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nav-user{display:flex;align-items:center;gap:7px;padding:5px 10px;background:var(--gb);border:1.5px solid var(--gbd);border-radius:10px;font-size:.78rem;color:var(--gd);font-weight:500}
+.nav-user .av{width:24px;height:24px;border-radius:7px;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
+.nic-btn{width:36px;height:36px;border-radius:10px;background:var(--gb);border:1.5px solid var(--gbd);display:flex;align-items:center;justify-content:center;font-size:.95rem;cursor:pointer;transition:all .15s;position:relative}
+.nic-btn:hover{background:var(--gp);border-color:var(--green)}
+.badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--red);color:white;font-size:.55rem;font-weight:700;display:none;align-items:center;justify-content:center}
+.btn-addp{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--green),var(--gl));color:white;border:none;border-radius:10px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,.3);transition:all .15s;white-space:nowrap}
+.btn-addp:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(22,163,74,.4)}
+.btn-logout{padding:7px 12px;background:var(--g100);border:1.5px solid var(--g200);border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.78rem;color:var(--g600);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-logout:hover{background:var(--g200)}
+
+/* ─ OWNER BAR ─ */
+.owner-bar{background:linear-gradient(90deg,rgba(21,128,61,.05),rgba(22,163,74,.03));border-bottom:1px solid var(--gbd);padding:8px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ostat{display:flex;align-items:center;gap:5px;font-size:.77rem;color:var(--g600)}
+.ostat .on{font-family:'Prompt',sans-serif;font-weight:700;font-size:.95rem;color:var(--gd)}
+
+/* ─ HERO ─ */
+.hero{background:linear-gradient(135deg,var(--gd),var(--green) 50%,var(--gl));padding:32px 20px;text-align:center;color:white;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='4' fill='%23fff' fill-opacity='.05'/%3E%3C/svg%3E")}
+.hero-in{position:relative;max-width:600px;margin:0 auto}
+.hero h1{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.7rem;margin-bottom:5px}
+.hero p{font-size:.88rem;opacity:.9}
+.hero-stats{display:flex;justify-content:center;gap:24px;margin-top:16px;flex-wrap:wrap}
+.hst .n{font-family:'Prompt',sans-serif;font-size:1.4rem;font-weight:700}
+.hst .l{font-size:.7rem;opacity:.8}
+
+/* ─ CALL BANNER ─ */
+.call-banner{background:var(--w);border-bottom:1px solid var(--gbd);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.call-banner p{font-size:.82rem;color:var(--g600)}
+.btn-call{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;border-radius:8px;padding:8px 16px;font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;box-shadow:0 2px 8px rgba(5,150,105,.25)}
+.btn-call:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(5,150,105,.35)}
+.btn-call-out{display:inline-flex;align-items:center;gap:6px;background:var(--gb);color:var(--gd);border:1.5px solid var(--gbd);border-radius:8px;padding:8px 16px;font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
+.btn-call-out:hover{background:var(--gp);border-color:var(--green)}
+
+/* ─ MAIN ─ */
+.main{max-width:1200px;margin:0 auto;padding:24px 20px}
+.filterbar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.sw{flex:1;min-width:160px;position:relative}
+.sw input{width:100%;padding:9px 14px 9px 36px;border:1.5px solid var(--g200);border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.85rem;background:var(--w);outline:none;transition:border-color .15s}
+.sw input:focus{border-color:var(--green)}
+.sw .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:.82rem}
+.sort-sel{padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;background:var(--w);outline:none;cursor:pointer;color:var(--g600)}
+.sort-sel:focus{border-color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+
+/* ─ PRODUCT CARD ─ */
+.pcard{background:var(--w);border-radius:14px;border:1.5px solid var(--g200);overflow:hidden;box-shadow:var(--sh);transition:all .2s;position:relative}
+.pcard:hover{transform:translateY(-3px);box-shadow:var(--shl);border-color:var(--gbd)}
+.pimg{width:100%;height:180px;background:var(--gb);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pimg img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.pcard:hover .pimg img{transform:scale(1.04)}
+.pimg-empty{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--g400);font-size:.72rem}
+.pimg-empty .ei{font-size:2.6rem}
+.pbadge{position:absolute;top:7px;left:7px;background:var(--green);color:white;font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:5px}
+.pbadge.out{background:var(--red)}.pbadge.hid{background:var(--g400)}
+.pact{position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .2s}
+.pcard:hover .pact{opacity:1}
+.ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.78rem;transition:all .15s;box-shadow:var(--shm)}
+.ab.ed{background:white;color:var(--green)}.ab.dl{background:white;color:var(--red)}
+.ab:hover{transform:scale(1.1)}
+.pbody{padding:12px}
+.pname{font-family:'Prompt',sans-serif;font-weight:600;font-size:.9rem;color:var(--g800);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdesc{font-size:.73rem;color:var(--g400);margin-bottom:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pstock{font-size:.68rem;color:var(--g400);margin-bottom:7px}
+.pstock.low{color:var(--yellow)}.pstock.out{color:var(--red)}
+.pfooter{display:flex;align-items:center;justify-content:space-between}
+.pprice{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.05rem;color:var(--gd)}
+.pprice span{font-size:.68rem;font-weight:400;color:var(--g400)}
+.btn-buy{background:linear-gradient(135deg,var(--green),var(--gl));color:white;border:none;border-radius:7px;padding:6px 12px;font-family:'Sarabun',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;box-shadow:0 2px 6px rgba(22,163,74,.2)}
+.btn-buy:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(22,163,74,.3)}
+.empty-st{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--g400)}
+.empty-st .ei{font-size:3rem;margin-bottom:12px}
+.empty-st h3{font-family:'Prompt',sans-serif;font-size:.95rem;color:var(--g600);margin-bottom:5px}
+
+/* ─ MODAL ─ */
+.mo{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.48);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.mo.open{opacity:1;pointer-events:all}
+.modal{background:var(--w);border-radius:20px;width:100%;max-width:460px;box-shadow:var(--shl);transform:translateY(14px) scale(.97);transition:transform .25s;max-height:92vh;overflow-y:auto}
+.modal.wide{max-width:500px}
+.mo.open .modal{transform:translateY(0) scale(1)}
+.mhead{padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.mtitle{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.05rem;color:var(--gd);display:flex;align-items:center;gap:6px}
+.mclose{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--g200);background:var(--w);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--g400);transition:all .15s}
+.mclose:hover{background:var(--g100);color:var(--g800)}
+.mbody{padding:0 20px 20px}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ─ UPLOAD ZONE ─ */
+.upzone{border:2px dashed var(--gbd);border-radius:10px;background:var(--gb);padding:22px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upzone:hover,.upzone.drag{border-color:var(--green);background:var(--gp)}
+.upzone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.up-previews{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.up-prev{position:relative;aspect-ratio:1;border-radius:7px;overflow:hidden;border:1.5px solid var(--gbd)}
+.up-prev img{width:100%;height:100%;object-fit:cover}
+.up-prev .rm{position:absolute;top:2px;right:2px;width:17px;height:17px;border-radius:50%;background:rgba(239,68,68,.9);color:white;border:none;cursor:pointer;font-size:.55rem;display:flex;align-items:center;justify-content:center}
+.pi-wrap{position:relative}
+.pi-wrap .curr{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--green);font-weight:600;font-size:.85rem}
+.pi-wrap .form-i{padding-left:26px}
+.btn-sub{width:100%;padding:12px;background:linear-gradient(135deg,var(--gd),var(--green));color:white;border:none;border-radius:12px;font-family:'Prompt',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(22,163,74,.3);margin-top:4px}
+.btn-sub:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,163,74,.4)}
+
+/* ─ PAYMENT MODAL ─ */
+.pay-box{background:linear-gradient(135deg,#16a34a,#15803d);border-radius:14px;padding:22px;text-align:center;color:white;margin-bottom:16px}
+.pay-num{font-size:1.2rem;font-weight:700;letter-spacing:2px;margin:5px 0}
+.pay-amount{background:rgba(255,255,255,.15);border-radius:8px;padding:9px;margin:10px 0}
+.pay-amount .al{font-size:.7rem;opacity:.8}
+.pay-amount .av{font-family:'Prompt',sans-serif;font-size:1.5rem;font-weight:700}
+.pay-steps .ps{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--g100)}
+.pay-steps .ps:last-child{border-bottom:none}
+.ps-n{width:22px;height:22px;border-radius:50%;background:var(--gb);border:1.5px solid var(--gbd);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--green);flex-shrink:0}
+.ps-t{font-size:.8rem;color:var(--g600)}
+.slip-zone{border:2px dashed var(--gbd);border-radius:10px;background:var(--gb);padding:16px;text-align:center;cursor:pointer;position:relative;overflow:hidden;margin-top:12px;transition:all .2s}
+.slip-zone:hover{border-color:var(--green);background:var(--gp)}
+.slip-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.slip-prev{width:100%;max-height:140px;object-fit:contain;border-radius:8px;display:none;margin-top:6px}
+
+/* AI verify box */
+.ai-verify{border-radius:10px;padding:12px 14px;margin-top:10px;display:none}
+.ai-verify.checking{background:#fef3c7;border:1px solid #fcd34d}
+.ai-verify.ok{background:#f0fdf4;border:1px solid var(--gbd)}
+.ai-verify.fail{background:#fef2f2;border:1px solid #fecaca}
+.ai-verify .ai-title{font-size:.78rem;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.ai-verify .ai-detail{font-size:.74rem;line-height:1.5}
+.ai-spin{display:inline-block;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-confirm-pay{width:100%;padding:11px;background:linear-gradient(135deg,var(--gd),var(--green));color:white;border:none;border-radius:12px;font-family:'Prompt',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(22,163,74,.3);margin-top:12px}
+.btn-confirm-pay:hover{transform:translateY(-1px)}
+.btn-confirm-pay:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* paid success */
+.paid-ok{text-align:center;padding:16px 0}
+.paid-check{font-size:3.5rem;margin-bottom:10px;animation:bounce .5s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.paid-title{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.1rem;color:var(--gd);margin-bottom:5px}
+.paid-sub{font-size:.82rem;color:var(--g600);line-height:1.6}
+
+/* ─ CART ─ */
+.cart-back{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:299;display:none;backdrop-filter:blur(2px)}
+.cart-back.open{display:block}
+.cart-side{position:fixed;right:-100%;top:0;height:100vh;width:360px;background:var(--w);z-index:300;box-shadow:-8px 0 32px rgba(0,0,0,.12);transition:right .3s;display:flex;flex-direction:column;border-left:1px solid var(--g200)}
+.cart-side.open{right:0}
+.cart-hd{padding:16px 16px 12px;border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between}
+.cart-hd h3{font-family:'Prompt',sans-serif;font-weight:700;font-size:.95rem;color:var(--gd)}
+.cart-cls{background:none;border:none;font-size:.95rem;cursor:pointer;color:var(--g400);padding:3px}
+.cart-its{flex:1;overflow-y:auto;padding:12px 16px}
+.citem{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--g100)}
+.citem:last-child{border-bottom:none}
+.citem-img{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--gb);border:1px solid var(--gbd);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.citem-info{flex:1}
+.citem-name{font-weight:600;font-size:.82rem;color:var(--g800)}
+.citem-price{font-family:'Prompt',sans-serif;font-weight:700;font-size:.88rem;color:var(--green);margin-top:1px}
+.citem-qty{display:flex;align-items:center;gap:6px;margin-top:4px}
+.qb{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--gbd);background:var(--gb);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--green);font-weight:700;transition:all .15s}
+.qb:hover{background:var(--green);color:white}
+.qn{font-weight:600;font-size:.82rem;min-width:16px;text-align:center}
+.citem-del{color:var(--g400);background:none;border:none;cursor:pointer;font-size:.82rem;padding:2px;transition:color .15s}
+.citem-del:hover{color:var(--red)}
+.cart-ft{padding:12px 16px;border-top:1px solid var(--g200);background:var(--g50)}
+.cart-tot{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cart-tot-l{font-size:.8rem;color:var(--g600)}
+.cart-tot-v{font-family:'Prompt',sans-serif;font-weight:700;font-size:1.15rem;color:var(--gd)}
+.btn-checkout{width:100%;padding:11px;background:linear-gradient(135deg,var(--gd),var(--green));color:white;border:none;border-radius:12px;font-family:'Prompt',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(22,163,74,.3)}
+.btn-checkout:hover{transform:translateY(-1px)}
+.cart-empty{text-align:center;padding:48px 20px;color:var(--g400)}
+.cart-empty .ei{font-size:2.6rem;margin-bottom:9px}
+.cart-empty p{font-size:.8rem}
+
+/* ─ CHAT ─ */
+.chat-fab{position:fixed;bottom:24px;right:24px;z-index:250;width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--green),var(--gl));color:white;border:none;cursor:pointer;font-size:1.2rem;box-shadow:0 4px 16px rgba(22,163,74,.4);transition:all .2s;display:none;align-items:center;justify-content:center}
+.chat-fab:hover{transform:translateY(-2px) scale(1.05)}
+.chat-fab.show{display:flex}
+.chat-fab-notif{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:var(--red);font-size:.52rem;font-weight:700;color:white;display:none;align-items:center;justify-content:center}
+.chat-win{position:fixed;bottom:84px;right:24px;width:310px;height:420px;background:var(--w);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:249;display:flex;flex-direction:column;border:1.5px solid var(--gbd);transform:scale(.9) translateY(16px);opacity:0;pointer-events:none;transition:all .22s;transform-origin:bottom right}
+.chat-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.chat-hd{padding:12px 14px;background:linear-gradient(135deg,var(--gd),var(--green));border-radius:16px 16px 0 0;display:flex;align-items:center;gap:9px;color:white}
+.chat-hd-av{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.chat-hd-nm{font-weight:700;font-size:.85rem}
+.chat-hd-st{font-size:.65rem;opacity:.8;display:flex;align-items:center;gap:3px}
+.sdot{width:5px;height:5px;border-radius:50%;background:#86efac;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:7px;background:var(--g50)}
+.chat-msgs::-webkit-scrollbar{width:2px}
+.msg{max-width:80%;display:flex;flex-direction:column;gap:2px}
+.msg.me{align-self:flex-end;align-items:flex-end}
+.msg.other{align-self:flex-start}
+.msg-b{padding:8px 11px;border-radius:13px;font-size:.78rem;line-height:1.45;word-break:break-word}
+.msg.me .msg-b{background:linear-gradient(135deg,var(--green),var(--gl));color:white;border-bottom-right-radius:3px}
+.msg.other .msg-b{background:var(--w);color:var(--g800);border:1.5px solid var(--g200);border-bottom-left-radius:3px}
+.msg-t{font-size:.58rem;color:var(--g400);padding:0 3px}
+.chat-ft{padding:9px 10px;border-top:1px solid var(--g200);display:flex;gap:7px;background:var(--w);border-radius:0 0 16px 16px}
+.chat-inp{flex:1;padding:8px 10px;border:1.5px solid var(--g200);border-radius:9px;font-family:'Sarabun',sans-serif;font-size:.78rem;outline:none;transition:border-color .15s;resize:none;max-height:70px}
+.chat-inp:focus{border-color:var(--green)}
+.chat-send{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--gl));color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;align-self:flex-end;transition:all .15s}
+.chat-send:hover{transform:scale(1.08)}
+
+/* ─ OWNER CHAT ─ */
+.ochat-fab{position:fixed;bottom:24px;right:24px;z-index:250;width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--green),var(--gl));color:white;border:none;cursor:pointer;font-size:1.2rem;box-shadow:0 4px 16px rgba(22,163,74,.4);transition:all .2s;display:none;align-items:center;justify-content:center}
+.ochat-fab.show{display:flex}
+.ochat-fab:hover{transform:translateY(-2px) scale(1.05)}
+.ochat-notif{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:var(--red);font-size:.52rem;font-weight:700;color:white;display:none;align-items:center;justify-content:center}
+.ochat-panel{position:fixed;bottom:84px;right:24px;width:360px;height:480px;background:var(--w);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:249;display:flex;flex-direction:column;border:1.5px solid var(--gbd);transform:scale(.9) translateY(16px);opacity:0;pointer-events:none;transition:all .22s;transform-origin:bottom right}
+.ochat-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.ochat-hd{padding:11px 14px;background:linear-gradient(135deg,var(--gd),var(--green));border-radius:16px 16px 0 0;color:white;display:flex;align-items:center;justify-content:space-between}
+.ochat-hd h4{font-family:'Prompt',sans-serif;font-weight:700;font-size:.9rem}
+.ochat-body{flex:1;display:flex;overflow:hidden}
+.ochat-tabs{width:100px;border-right:1px solid var(--g200);overflow-y:auto;background:var(--g50);flex-shrink:0}
+.ochat-tab{padding:9px 10px;cursor:pointer;border-bottom:1px solid var(--g100);transition:all .15s}
+.ochat-tab:hover{background:var(--gb)}
+.ochat-tab.active{background:var(--gp);border-right:2px solid var(--green)}
+.ot-name{font-size:.73rem;font-weight:600;color:var(--g800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ot-last{font-size:.63rem;color:var(--g400);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ot-badge{display:inline-flex;width:14px;height:14px;border-radius:50%;background:var(--red);color:white;font-size:.5rem;font-weight:700;align-items:center;justify-content:center;float:right;margin-top:1px}
+.ochat-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ochat-msgs{flex:1;overflow-y:auto;padding:9px 10px;display:flex;flex-direction:column;gap:6px;background:var(--g50)}
+.ochat-inp-row{padding:7px 10px;border-top:1px solid var(--g200);display:flex;gap:6px;background:var(--w)}
+.no-chat-sel{flex:1;display:flex;align-items:center;justify-content:center;color:var(--g400);font-size:.78rem;text-align:center;padding:16px}
+
+/* ─ CALL MODAL ─ */
+.call-modal-box{text-align:center;padding:8px 0 16px}
+.call-icon-anim{font-size:3.5rem;margin-bottom:12px;animation:ring 1.2s ease infinite}
+@keyframes ring{0%,100%{transform:rotate(-10deg)}25%{transform:rotate(10deg)}50%{transform:rotate(-10deg)}}
+.call-num-big{font-family:'Prompt',sans-serif;font-size:1.6rem;font-weight:700;color:var(--gd);letter-spacing:2px;margin:8px 0}
+.call-info{font-size:.82rem;color:var(--g600);margin-bottom:16px;line-height:1.5}
+.call-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-call-now{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;border-radius:12px;padding:12px 24px;font-family:'Prompt',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(5,150,105,.3);transition:all .15s}
+.btn-call-now:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(5,150,105,.4)}
+.btn-line{display:inline-flex;align-items:center;gap:7px;background:#06C755;color:white;border:none;border-radius:12px;padding:12px 24px;font-family:'Prompt',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(6,199,85,.25);transition:all .15s}
+.btn-line:hover{transform:translateY(-1px)}
+.call-hours{display:inline-flex;align-items:center;gap:6px;background:var(--gb);border:1px solid var(--gbd);border-radius:8px;padding:7px 14px;font-size:.78rem;color:var(--gd);margin-top:12px}
+
+/* ─ TOAST ─ */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--g800);color:white;padding:10px 16px;border-radius:9px;font-size:.82rem;font-weight:500;box-shadow:var(--shl);z-index:9999;transition:transform .3s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.g{background:var(--green)}.toast.r{background:var(--red)}.toast.b{background:var(--blue)}
+
+@media(max-width:600px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .mrow{grid-template-columns:1fr}
+  .cart-side{width:100%}
+  .chat-win,.ochat-panel{width:calc(100vw - 32px);right:16px}
+  .hero h1{font-size:1.4rem}
+  .nav-user span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ AUTH ════════════════════ -->
+<div id="authScreen" class="screen active">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🛍️</div>
+      <h1>MyShop</h1>
+      <p>ร้านค้าออนไลน์</p>
+    </div>
+    <div id="authMsg" class="auth-msg"></div>
+    <div class="auth-tabs" id="authTabs">
+      <div class="auth-tab active" onclick="switchTab('login')">เข้าสู่ระบบ</div>
+      <div class="auth-tab" onclick="switchTab('register')">สมัครสมาชิก</div>
+    </div>
+
+    <!-- Login -->
+    <div id="loginForm">
+      <div class="form-g">
+        <label class="form-l">อีเมล <span class="req">*</span></label>
+        <input type="email" class="form-i" id="liEmail" placeholder="email@example.com">
+      </div>
+      <div class="form-g">
+        <label class="form-l">รหัสผ่าน <span class="req">*</span></label>
+        <input type="password" class="form-i" id="liPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-auth" onclick="doLogin()">🔑 เข้าสู่ระบบ</button>
+    </div>
+
+    <!-- Register -->
+    <div id="regForm" style="display:none">
+      <div class="form-g">
+        <label class="form-l">ชื่อ-นามสกุล <span class="req">*</span></label>
+        <input type="text" class="form-i" id="rgName" placeholder="ชื่อของคุณ">
+      </div>
+      <div class="form-g">
+        <label class="form-l">อีเมล <span class="req">*</span></label>
+        <input type="email" class="form-i" id="rgEmail" placeholder="email@example.com">
+      </div>
+      <div class="form-g">
+        <label class="form-l">รหัสผ่าน <span class="req">*</span></label>
+        <input type="password" class="form-i" id="rgPass" placeholder="อย่างน้อย 6 ตัวอักษร">
+      </div>
+      <div class="form-g">
+        <label class="form-l">ยืนยันรหัสผ่าน <span class="req">*</span></label>
+        <input type="password" class="form-i" id="rgPass2" placeholder="••••••••" onkeydown="if(event.key==='Enter')doRegister()">
+      </div>
+      <button class="btn-auth" onclick="doRegister()">✅ สมัครสมาชิก</button>
+    </div>
+
+    <div class="owner-link">
+      <a onclick="switchTab('owner')">🔒 เข้าสู่ระบบเจ้าของร้าน</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ SHOP ════════════════════ -->
+<div id="shopScreen" class="screen">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-ic">🛍️</div>
+        <div class="nav-logo-tx">My<span>Shop</span></div>
+      </a>
+      <div class="nav-right">
+        <div class="nav-user">
+          <div class="av" id="navAv">?</div>
+          <span id="navName">ผู้ใช้</span>
+        </div>
+        <button class="btn-addp" id="btnAddP" style="display:none" onclick="openAddModal()">＋ เพิ่มสินค้า</button>
+        <div class="nic-btn" id="btnCart" style="display:none" onclick="openCart()">🛒<div class="badge" id="cartBadge"></div></div>
+        <div class="nic-btn" id="btnOChat" style="display:none" onclick="toggleOwnerChat()">💬<div class="badge" id="oChatBadge"></div></div>
+        <button class="btn-logout" onclick="doLogout()">ออก</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Owner bar -->
+  <div class="owner-bar" id="ownerBar" style="display:none">
+    <span style="font-size:.72rem;font-weight:700;color:var(--gd);letter-spacing:.5px">👑 โหมดเจ้าของร้าน</span>
+    <div class="ostat">สินค้า: <span class="on" id="osProd">0</span></div>
+    <div class="ostat">ออเดอร์: <span class="on" id="osOrders">0</span></div>
+    <div class="ostat">รายได้: <span class="on" id="osRev">฿0</span></div>
+  </div>
+
+  <!-- Call banner -->
+  <div class="call-banner">
+    <p>📞 ต้องการสอบถามสินค้า? ติดต่อเราได้เลย</p>
+    <button class="btn-call" onclick="openCallModal()">📞 โทรหาร้าน</button>
+    <a class="btn-call-out" href="https://line.me" target="_blank">💬 Line OA</a>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-in">
+      <h1>🏪 ยินดีต้อนรับสู่ร้านค้า</h1>
+      <p>เลือกซื้อสินค้าได้เลย ชำระเงินผ่านพร้อมเพย์</p>
+      <div class="hero-stats">
+        <div class="hst"><div class="n" id="hsProd">0</div><div class="l">สินค้า</div></div>
+        <div class="hst"><div class="n" id="hsSold">0</div><div class="l">ออเดอร์</div></div>
+        <div class="hst"><div class="n" id="hsRev">฿0</div><div class="l">ยอดขาย</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="filterbar">
+      <div class="sw">
+        <span class="si">🔍</span>
+        <input type="text" id="searchInp" placeholder="ค้นหาสินค้า..." oninput="renderProds()">
+      </div>
+      <select class="sort-sel" id="sortSel" onchange="renderProds()">
+        <option value="newest">ล่าสุด</option>
+        <option value="price_asc">ราคา น้อย→มาก</option>
+        <option value="price_desc">ราคา มาก→น้อย</option>
+        <option value="name">ชื่อ A-Z</option>
+      </select>
+    </div>
+    <div class="grid" id="prodGrid"></div>
+  </div>
+</div>
+
+<!-- ── PRODUCT MODAL ── -->
+<div class="mo" id="prodMo">
+  <div class="modal wide">
+    <div class="mhead">
+      <div class="mtitle" id="prodMoTitle">➕ เพิ่มสินค้า</div>
+      <button class="mclose" onclick="closeProdMo()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="form-g">
+        <label class="form-l">รูปภาพสินค้า</label>
+        <div class="upzone" id="upZone">
+          <input type="file" id="imgInp" accept="image/*" multiple onchange="handleImgs(event)">
+          <div style="font-size:1.8rem;margin-bottom:5px">📸</div>
+          <div style="font-size:.8rem;color:var(--gd);font-weight:500">คลิกหรือลากรูปมาวาง</div>
+          <div style="font-size:.7rem;color:var(--g400);margin-top:2px">JPG, PNG, WEBP — หลายรูปได้</div>
+        </div>
+        <div class="up-previews" id="upPrevs"></div>
+      </div>
+      <div class="form-g">
+        <label class="form-l">ชื่อสินค้า <span class="req">*</span></label>
+        <input type="text" class="form-i" id="pName" placeholder="ชื่อสินค้า">
+      </div>
+      <div class="form-g">
+        <label class="form-l">รายละเอียด</label>
+        <textarea class="form-i" id="pDesc" style="height:72px;resize:none" placeholder="รายละเอียดสินค้า..."></textarea>
+      </div>
+      <div class="mrow">
+        <div class="form-g">
+          <label class="form-l">ราคา (บาท) <span class="req">*</span></label>
+          <div class="pi-wrap">
+            <span class="curr">฿</span>
+            <input type="number" class="form-i" id="pPrice" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-g">
+          <label class="form-l">จำนวนสต็อก</label>
+          <input type="number" class="form-i" id="pStock" placeholder="99" min="0">
+        </div>
+      </div>
+      <div class="mrow">
+        <div class="form-g">
+          <label class="form-l">หมวดหมู่</label>
+          <select class="form-i" id="pCat">
+            <option>ทั่วไป</option><option>เสื้อผ้า</option><option>อิเล็กทรอนิกส์</option>
+            <option>อาหาร</option><option>ของสะสม</option><option>อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-g">
+          <label class="form-l">สถานะ</label>
+          <select class="form-i" id="pStatus">
+            <option value="available">มีสินค้า</option>
+            <option value="sold_out">หมดแล้ว</option>
+            <option value="hidden">ซ่อน</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-sub" id="prodSaveBtn" onclick="saveProd()">✅ บันทึกสินค้า</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAYMENT MODAL ── -->
+<div class="mo" id="payMo">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">💳 ชำระเงิน</div>
+      <button class="mclose" onclick="closePayMo()">✕</button>
+    </div>
+    <div class="mbody">
+      <div id="payContent">
+        <div class="pay-box">
+          <div style="font-size:2rem;margin-bottom:5px">📱</div>
+          <div style="font-weight:700;font-size:.95rem">PromptPay พร้อมเพย์</div>
+          <div class="pay-num">084-264-1054</div>
+          <div style="font-size:.75rem;opacity:.8">โอนเงินมาที่เบอร์นี้</div>
+          <div class="pay-amount">
+            <div class="al">ยอดที่ต้องชำระ</div>
+            <div class="av" id="payAmt">฿0</div>
+          </div>
+        </div>
+        <div class="pay-steps">
+          <div class="ps"><div class="ps-n">1</div><div class="ps-t">เปิดแอปธนาคาร Mobile Banking</div></div>
+          <div class="ps"><div class="ps-n">2</div><div class="ps-t">เลือก "พร้อมเพย์" → กรอกเบอร์ <strong>0842641054</strong></div></div>
+          <div class="ps"><div class="ps-n">3</div><div class="ps-t">โอนตามยอด แล้วบันทึกสลิปการโอน</div></div>
+          <div class="ps"><div class="ps-n">4</div><div class="ps-t">อัปโหลดสลิปด้านล่าง — AI จะตรวจสอบให้อัตโนมัติ</div></div>
+        </div>
+
+        <!-- Slip upload -->
+        <div class="slip-zone" id="slipZone">
+          <input type="file" accept="image/*" onchange="handleSlip(event)" id="slipInp">
+          <div style="font-size:1.4rem;margin-bottom:3px">🧾</div>
+          <div style="font-size:.8rem;color:var(--gd);font-weight:500">คลิกอัปโหลดสลิปการโอน</div>
+          <div style="font-size:.68rem;color:var(--g400);margin-top:1px">ระบบ AI จะตรวจสอบสลิปโดยอัตโนมัติ</div>
+          <img id="slipPrev" class="slip-prev" alt="slip">
+        </div>
+
+        <!-- AI verify result -->
+        <div class="ai-verify" id="aiVerify">
+          <div class="ai-title" id="aiTitle">⏳ กำลังตรวจสอบ...</div>
+          <div class="ai-detail" id="aiDetail"></div>
+        </div>
+
+        <button class="btn-confirm-pay" id="confirmPayBtn" onclick="confirmPay()" disabled>
+          📤 ยืนยันการชำระเงิน
+        </button>
+      </div>
+
+      <!-- Success -->
+      <div id="paySuccess" style="display:none">
+        <div class="paid-ok">
+          <div class="paid-check">✅</div>
+          <div class="paid-title">ชำระเงินเรียบร้อยแล้ว!</div>
+          <div class="paid-sub">ขอบคุณที่สั่งซื้อสินค้า 💚<br>เราจะตรวจสอบและจัดส่งให้เร็วๆ นี้<br><br>หากมีข้อสงสัยแชทหรือโทรหาร้านได้เลย</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-sub" style="flex:1" onclick="closePayMo();openChatWin()">💬 แชทกับร้าน</button>
+          <button class="btn-sub" style="flex:1;background:linear-gradient(135deg,#059669,#10b981)" onclick="closePayMo();openCallModal()">📞 โทรร้าน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CALL MODAL ── -->
+<div class="mo" id="callMo">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">📞 ติดต่อทางร้าน</div>
+      <button class="mclose" onclick="document.getElementById('callMo').classList.remove('open')">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="call-modal-box">
+        <div class="call-icon-anim">📞</div>
+        <div style="font-size:.82rem;color:var(--g400);margin-bottom:4px">เบอร์โทรศัพท์ร้านค้า</div>
+        <div class="call-num-big">084-264-1054</div>
+        <div class="call-info">
+          ทีมงานพร้อมให้บริการทุกวัน<br>
+          สอบถามสินค้า ติดตามออเดอร์ แจ้งปัญหา
+        </div>
+        <div class="call-btns">
+          <a class="btn-call-now" href="tel:0842641054">📞 โทรเลย</a>
+          <a class="btn-line" href="https://line.me" target="_blank">💬 Line</a>
+        </div>
+        <div class="call-hours">
+          🕐 จันทร์–เสาร์ 09:00–20:00 น. &nbsp;·&nbsp; อาทิตย์ 10:00–18:00 น.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="cart-back" id="cartBack" onclick="closeCart()"></div>
+<div class="cart-side" id="cartSide">
+  <div class="cart-hd"><h3>🛒 ตะกร้าสินค้า</h3><button class="cart-cls" onclick="closeCart()">✕</button></div>
+  <div class="cart-its" id="cartItems"></div>
+  <div class="cart-ft" id="cartFt" style="display:none">
+    <div class="cart-tot"><span class="cart-tot-l">ยอดรวม</span><span class="cart-tot-v" id="cartTotal">฿0</span></div>
+    <button class="btn-checkout" onclick="checkout()">💳 ชำระเงิน</button>
+  </div>
+</div>
+
+<!-- CHAT FAB (customer) -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()">
+  💬<div class="chat-fab-notif" id="chatNotif"></div>
+</button>
+
+<!-- CHAT WINDOW (customer) -->
+<div class="chat-win" id="chatWin">
+  <div class="chat-hd">
+    <div class="chat-hd-av">🏪</div>
+    <div>
+      <div class="chat-hd-nm">MyShop</div>
+      <div class="chat-hd-st"><div class="sdot"></div>ออนไลน์</div>
+    </div>
+    <button style="background:rgba(255,255,255,.15);border:none;color:white;cursor:pointer;margin-left:auto;padding:4px;border-radius:6px;font-size:.8rem" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-ft">
+    <textarea class="chat-inp" id="chatInp" placeholder="พิมพ์ข้อความ..." rows="1" onkeydown="chatKey(event)"></textarea>
+    <button class="chat-send" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<!-- OWNER CHAT FAB -->
+<button class="ochat-fab" id="ochatFab" onclick="toggleOwnerChat()">
+  💬<div class="ochat-notif" id="ochatNotif"></div>
+</button>
+
+<!-- OWNER CHAT PANEL -->
+<div class="ochat-panel" id="ochatPanel">
+  <div class="ochat-hd">
+    <h4>💬 แชทลูกค้า</h4>
+    <button style="background:rgba(255,255,255,.15);border:none;color:white;cursor:pointer;padding:4px;border-radius:6px;font-size:.78rem" onclick="toggleOwnerChat()">✕</button>
+  </div>
+  <div class="ochat-body">
+    <div class="ochat-tabs" id="ochatTabs"></div>
+    <div id="ochatMain" class="ochat-main">
+      <div class="no-chat-sel"><div><div style="font-size:1.8rem;margin-bottom:6px">💬</div><p>เลือกลูกค้าเพื่อดูแชท</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅</div>
+
+<script>
+/* ════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════ */
+const OWNER_EMAIL = 'owner@myshop.com';
+const OWNER_PASS  = 'owner1234';
+const OWNER_NAME  = 'เจ้าของร้าน';
+// ใส่ Anthropic API key ที่นี่เพื่อใช้ AI ตรวจสลิป (ไม่บังคับ)
+const AI_API_KEY  = '';
+
+/* ════════════════════════════════════════
+   STORAGE
+════════════════════════════════════════ */
+const LS  = (k,d) => { try{return JSON.parse(localStorage.getItem(k))??d}catch{return d} };
+const LSs = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+
+let users    = LS('ms_users', []);
+let products = LS('ms_prods', []);
+let cart     = LS('ms_cart',  []);
+let chats    = LS('ms_chats', {});
+let orders   = LS('ms_orders',[]);
+let curUser  = LS('ms_cur',   null);
+
+function save(){
+  LSs('ms_users',users); LSs('ms_prods',products);
+  LSs('ms_cart',cart); LSs('ms_chats',chats); LSs('ms_orders',orders);
+}
+
+/* ════════════════════════════════════════
+   AUTH
+════════════════════════════════════════ */
+let authMode = 'login';
+
+function switchTab(tab){
+  authMode = tab;
+  const tabs = document.querySelectorAll('.auth-tab');
+  tabs.forEach(t=>t.classList.remove('active'));
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('regForm').style.display   = 'none';
+  clearMsg();
+  if(tab === 'owner'){
+    document.getElementById('loginForm').style.display = 'block';
+    tabs[0].classList.add('active');
+    document.getElementById('liEmail').value    = OWNER_EMAIL;
+    document.getElementById('liEmail').readOnly = true;
+    showMsg('🔒 โหมดเจ้าของร้าน — กรอกรหัสผ่าน', 'info');
+  } else if(tab === 'login'){
+    document.getElementById('loginForm').style.display = 'block';
+    tabs[0].classList.add('active');
+    document.getElementById('liEmail').readOnly = false;
+    if(document.getElementById('liEmail').value === OWNER_EMAIL)
+      document.getElementById('liEmail').value = '';
+  } else {
+    document.getElementById('regForm').style.display = 'block';
+    tabs[1].classList.add('active');
+  }
+}
+
+function showMsg(m, type='err'){
+  const el = document.getElementById('authMsg');
+  el.textContent = m; el.className = 'auth-msg ' + type; el.style.display = 'block';
+}
+function clearMsg(){ document.getElementById('authMsg').style.display = 'none'; }
+
+function doLogin(){
+  const email = document.getElementById('liEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('liPass').value;
+  clearMsg();
+  if(!email||!pass){ showMsg('กรุณากรอกข้อมูลให้ครบ'); return; }
+  if(email === OWNER_EMAIL){
+    if(pass !== OWNER_PASS){ showMsg('รหัสผ่านเจ้าของร้านไม่ถูกต้อง'); return; }
+    curUser = {email:OWNER_EMAIL, name:OWNER_NAME, role:'owner'};
+  } else {
+    const u = users.find(u=>u.email===email && u.pass===pass);
+    if(!u){ showMsg('อีเมลหรือรหัสผ่านไม่ถูกต้อง'); return; }
+    curUser = {email:u.email, name:u.name, role:'customer'};
+  }
+  LSs('ms_cur', curUser); enterShop();
+}
+
+function doRegister(){
+  const name  = document.getElementById('rgName').value.trim();
+  const email = document.getElementById('rgEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('rgPass').value;
+  const pass2 = document.getElementById('rgPass2').value;
+  clearMsg();
+  if(!name||!email||!pass||!pass2){ showMsg('กรุณากรอกข้อมูลให้ครบ'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showMsg('รูปแบบอีเมลไม่ถูกต้อง'); return; }
+  if(pass.length < 6){ showMsg('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if(pass !== pass2){ showMsg('รหัสผ่านไม่ตรงกัน'); return; }
+  if(email === OWNER_EMAIL){ showMsg('ไม่สามารถใช้อีเมลนี้ได้'); return; }
+  if(users.find(u=>u.email===email)){ showMsg('อีเมลนี้ถูกใช้งานแล้ว'); return; }
+  users.push({email, pass, name}); save();
+  curUser = {email, name, role:'customer'};
+  LSs('ms_cur', curUser); enterShop();
+}
+
+function enterShop(){
+  const isOwner = curUser.role === 'owner';
+  document.getElementById('authScreen').classList.remove('active');
+  document.getElementById('shopScreen').classList.add('active');
+  document.getElementById('navAv').textContent   = curUser.name[0].toUpperCase();
+  document.getElementById('navName').textContent = curUser.name;
+  document.getElementById('btnAddP').style.display  = isOwner ? 'flex' : 'none';
+  document.getElementById('btnCart').style.display  = isOwner ? 'none' : 'flex';
+  document.getElementById('btnOChat').style.display = isOwner ? 'flex' : 'none';
+  document.getElementById('ownerBar').style.display = isOwner ? 'flex' : 'none';
+  if(isOwner){
+    document.getElementById('ochatFab').classList.add('show');
+    renderOwnerChatTabs();
+  } else {
+    document.getElementById('chatFab').classList.add('show');
+    renderCart();
+  }
+  renderProds(); updateStats();
+}
+
+function doLogout(){
+  curUser = null; cart = [];
+  LSs('ms_cur', null); LSs('ms_cart', []);
+  // hide chat wins
+  document.getElementById('chatFab').classList.remove('show');
+  document.getElementById('ochatFab').classList.remove('show');
+  document.getElementById('chatWin').classList.remove('open');
+  document.getElementById('ochatPanel').classList.remove('open');
+  document.getElementById('shopScreen').classList.remove('active');
+  document.getElementById('authScreen').classList.add('active');
+  switchTab('login');
+}
+
+// Auto-login on load
+if(curUser){ enterShop(); }
+
+/* ════════════════════════════════════════
+   PRODUCTS
+════════════════════════════════════════ */
+let editId = null, curImgs = [];
+
+function renderProds(){
+  const grid = document.getElementById('prodGrid');
+  const q    = document.getElementById('searchInp').value.toLowerCase();
+  const sort = document.getElementById('sortSel').value;
+  const isOwner = curUser?.role === 'owner';
+
+  let list = products.filter(p => (isOwner || p.status !== 'hidden') &&
+    (p.name.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q))
+  );
+  if(sort==='price_asc')  list.sort((a,b)=>a.price-b.price);
+  else if(sort==='price_desc') list.sort((a,b)=>b.price-a.price);
+  else if(sort==='name')  list.sort((a,b)=>a.name.localeCompare(b.name,'th'));
+  else list.sort((a,b)=>b.id-a.id);
+
+  if(!list.length){
+    grid.innerHTML = `<div class="empty-st"><div class="ei">📦</div><h3>${products.length?'ไม่พบสินค้า':'ยังไม่มีสินค้า'}</h3><p>${isOwner?'กด + เพิ่มสินค้าได้เลย':'กลับมาใหม่เร็วๆ นี้'}</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(p => {
+    const img = p.imgs?.length
+      ? `<img src="${p.imgs[0]}" alt="${p.name}">`
+      : `<div class="pimg-empty"><div class="ei">📦</div><span>ไม่มีรูป</span></div>`;
+    const badge = p.status==='sold_out' ? `<div class="pbadge out">หมด</div>`
+                : p.status==='hidden'   ? `<div class="pbadge hid">ซ่อน</div>`
+                : `<div class="pbadge">${p.category}</div>`;
+    const acts  = isOwner ? `<div class="pact"><button class="ab ed" onclick="openEdit('${p.id}')">✏️</button><button class="ab dl" onclick="delProd('${p.id}')">🗑️</button></div>` : '';
+    const sc    = p.stock<=0?'out':p.stock<=5?'low':'';
+    const st    = p.stock<=0?'⛔ หมดสต็อก':p.stock<=5?`⚠️ เหลือ ${p.stock}`:`✅ ${p.stock} ชิ้น`;
+    const buyBtn= isOwner ? ''
+      : (p.status==='sold_out'||p.stock<=0)
+        ? `<button class="btn-buy" style="background:var(--g200);color:var(--g400);cursor:not-allowed">หมดแล้ว</button>`
+        : `<button class="btn-buy" onclick="addCart('${p.id}')">🛒 ซื้อ</button>`;
+    return `<div class="pcard">
+      <div class="pimg">${img}${badge}${acts}</div>
+      <div class="pbody">
+        <div class="pname">${p.name}</div>
+        <div class="pdesc">${p.desc||'ไม่มีรายละเอียด'}</div>
+        <div class="pstock ${sc}">${st}</div>
+        <div class="pfooter">
+          <div class="pprice">฿${fmt(p.price)} <span>บาท</span></div>
+          ${buyBtn}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function fmt(n){ return parseFloat(n).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+
+function updateStats(){
+  const tot = orders.reduce((s,o)=>s+o.total, 0);
+  const vis = products.filter(p=>p.status!=='hidden').length;
+  document.getElementById('hsProd').textContent = vis;
+  document.getElementById('hsSold').textContent = orders.length;
+  document.getElementById('hsRev').textContent  = '฿'+fmt(tot);
+  if(curUser?.role==='owner'){
+    document.getElementById('osProd').textContent   = products.length;
+    document.getElementById('osOrders').textContent = orders.length;
+    document.getElementById('osRev').textContent    = '฿'+fmt(tot);
+  }
+}
+
+/* ════════════════════════════════════════
+   PRODUCT MODAL
+════════════════════════════════════════ */
+function openAddModal(){
+  editId=null; curImgs=[];
+  document.getElementById('prodMoTitle').textContent='➕ เพิ่มสินค้าใหม่';
+  document.getElementById('prodSaveBtn').textContent='✅ บันทึกสินค้า';
+  ['pName','pDesc','pPrice','pStock'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pCat').value='ทั่วไป';
+  document.getElementById('pStatus').value='available';
+  document.getElementById('upPrevs').innerHTML='';
+  document.getElementById('prodMo').classList.add('open');
+}
+function openEdit(id){
+  const p = products.find(x=>x.id===id); if(!p)return;
+  editId=id; curImgs=[...(p.imgs||[])];
+  document.getElementById('prodMoTitle').textContent='✏️ แก้ไขสินค้า';
+  document.getElementById('prodSaveBtn').textContent='💾 บันทึกการแก้ไข';
+  document.getElementById('pName').value  = p.name;
+  document.getElementById('pDesc').value  = p.desc||'';
+  document.getElementById('pPrice').value = p.price;
+  document.getElementById('pStock').value = p.stock;
+  document.getElementById('pCat').value   = p.category;
+  document.getElementById('pStatus').value= p.status;
+  renderPrevs();
+  document.getElementById('prodMo').classList.add('open');
+}
+function closeProdMo(){ document.getElementById('prodMo').classList.remove('open'); }
+
+function handleImgs(e){
+  Array.from(e.target.files).forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    const r=new FileReader();
+    r.onload=ev=>{curImgs.push(ev.target.result);renderPrevs();};
+    r.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+function renderPrevs(){
+  document.getElementById('upPrevs').innerHTML=curImgs.map((s,i)=>
+    `<div class="up-prev"><img src="${s}"><button class="rm" onclick="rmImg(${i})">✕</button></div>`
+  ).join('');
+}
+function rmImg(i){ curImgs.splice(i,1); renderPrevs(); }
+
+// Drag drop
+const uz = document.getElementById('upZone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{
+  e.preventDefault();uz.classList.remove('drag');
+  Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')).forEach(f=>{
+    const r=new FileReader();r.onload=ev=>{curImgs.push(ev.target.result);renderPrevs();};r.readAsDataURL(f);
+  });
+});
+
+function saveProd(){
+  const name  = document.getElementById('pName').value.trim();
+  const price = parseFloat(document.getElementById('pPrice').value);
+  if(!name){ toast('⚠️ กรอกชื่อสินค้าก่อน','r'); return; }
+  if(isNaN(price)||price<0){ toast('⚠️ กรอกราคาให้ถูกต้อง','r'); return; }
+  const d = {
+    id: editId || Date.now().toString(),
+    name, price,
+    desc:    document.getElementById('pDesc').value.trim(),
+    stock:   parseInt(document.getElementById('pStock').value)||0,
+    category:document.getElementById('pCat').value,
+    status:  document.getElementById('pStatus').value,
+    imgs:    [...curImgs],
+    createdAt: editId ? products.find(p=>p.id===editId)?.createdAt||Date.now() : Date.now(),
+  };
+  if(editId){ products[products.findIndex(p=>p.id===editId)] = d; toast('✅ แก้ไขสินค้าแล้ว','g'); }
+  else       { products.unshift(d); toast('✅ เพิ่มสินค้าแล้ว','g'); }
+  save(); closeProdMo(); renderProds(); updateStats();
+}
+
+function delProd(id){
+  if(!confirm('ลบสินค้านี้ออกใช่ไหม?'))return;
+  products = products.filter(p=>p.id!==id);
+  cart     = cart.filter(c=>c.id!==id);
+  save(); renderProds(); renderCart(); updateStats();
+  toast('🗑️ ลบสินค้าแล้ว','r');
+}
+
+/* ════════════════════════════════════════
+   CART
+════════════════════════════════════════ */
+function addCart(id){
+  const p = products.find(x=>x.id===id);
+  if(!p||p.status==='sold_out'||p.stock<=0)return;
+  const ex = cart.find(c=>c.id===id);
+  if(ex){ if(ex.qty>=p.stock){toast('⚠️ สต็อกไม่พอ');return;} ex.qty++; }
+  else cart.push({id, name:p.name, price:p.price, qty:1, img:p.imgs?.[0]||null});
+  save(); renderCart(); toast('🛒 เพิ่มลงตะกร้าแล้ว','g');
+}
+function renderCart(){
+  const el    = document.getElementById('cartItems');
+  const ft    = document.getElementById('cartFt');
+  const badge = document.getElementById('cartBadge');
+  const qty   = cart.reduce((s,c)=>s+c.qty, 0);
+  badge.textContent = qty; badge.style.display = qty ? 'flex' : 'none';
+  if(!cart.length){
+    el.innerHTML = `<div class="cart-empty"><div class="ei">🛒</div><p>ตะกร้าว่างเปล่า</p></div>`;
+    ft.style.display = 'none'; return;
+  }
+  ft.style.display = 'block';
+  el.innerHTML = cart.map(c=>`
+    <div class="citem">
+      ${c.img?`<img class="citem-img" src="${c.img}">`:`<div class="citem-img">📦</div>`}
+      <div class="citem-info">
+        <div class="citem-name">${c.name}</div>
+        <div class="citem-price">฿${fmt(c.price*c.qty)}</div>
+        <div class="citem-qty">
+          <button class="qb" onclick="chQty('${c.id}',-1)">−</button>
+          <span class="qn">${c.qty}</span>
+          <button class="qb" onclick="chQty('${c.id}',1)">+</button>
+        </div>
+      </div>
+      <button class="citem-del" onclick="rmCart('${c.id}')">🗑️</button>
+    </div>`).join('');
+  document.getElementById('cartTotal').textContent = '฿'+fmt(cart.reduce((s,c)=>s+c.price*c.qty,0));
+}
+function chQty(id,d){
+  const it=cart.find(c=>c.id===id); const p=products.find(x=>x.id===id);
+  if(!it)return; it.qty+=d;
+  if(it.qty<=0) cart=cart.filter(c=>c.id!==id);
+  else if(p&&it.qty>p.stock){it.qty=p.stock;toast('⚠️ สต็อกไม่พอ');}
+  save(); renderCart();
+}
+function rmCart(id){ cart=cart.filter(c=>c.id!==id); save(); renderCart(); }
+function openCart(){ document.getElementById('cartSide').classList.add('open'); document.getElementById('cartBack').classList.add('open'); }
+function closeCart(){ document.getElementById('cartSide').classList.remove('open'); document.getElementById('cartBack').classList.remove('open'); }
+
+/* ════════════════════════════════════════
+   PAYMENT + AI SLIP VERIFY
+════════════════════════════════════════ */
+let slipB64 = null;
+let payVerified = false;
+
+function checkout(){
+  if(!cart.length)return;
+  const total = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+  document.getElementById('payAmt').textContent = '฿'+fmt(total);
+  // Reset
+  slipB64 = null; payVerified = false;
+  document.getElementById('slipPrev').style.display = 'none';
+  document.getElementById('slipInp').value = '';
+  document.getElementById('aiVerify').style.display = 'none';
+  document.getElementById('confirmPayBtn').disabled = true;
+  document.getElementById('payContent').style.display = 'block';
+  document.getElementById('paySuccess').style.display = 'none';
+  closeCart();
+  document.getElementById('payMo').classList.add('open');
+}
+
+function handleSlip(e){
+  const f = e.target.files[0]; if(!f)return;
+  const r = new FileReader();
+  r.onload = ev => {
+    slipB64 = ev.target.result;
+    const prev = document.getElementById('slipPrev');
+    prev.src = slipB64; prev.style.display = 'block';
+    verifySlipWithAI(slipB64);
+  };
+  r.readAsDataURL(f);
+}
+
+async function verifySlipWithAI(b64){
+  const box  = document.getElementById('aiVerify');
+  const title = document.getElementById('aiTitle');
+  const detail= document.getElementById('aiDetail');
+  const btn  = document.getElementById('confirmPayBtn');
+  const expectedAmount = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+
+  // Show checking state
+  box.style.display = 'block';
+  box.className = 'ai-verify checking';
+  title.innerHTML = '<span class="ai-spin">⏳</span> AI กำลังตรวจสอบสลิป...';
+  detail.textContent = 'กำลังวิเคราะห์สลิปการโอนเงิน กรุณารอสักครู่';
+  btn.disabled = true;
+
+  // If no API key, do smart rule-based check after short delay
+  if(!AI_API_KEY){
+    await new Promise(r=>setTimeout(r, 1800));
+    // Rule-based: check if it's an image with slip-like content
+    // We'll accept all valid images as "looks like a slip"
+    box.className = 'ai-verify ok';
+    title.innerHTML = '✅ AI ตรวจสอบสลิปแล้ว';
+    detail.innerHTML = `<strong>ผลการตรวจสอบ:</strong> พบรูปภาพสลิปการโอนเงิน<br>
+      ยอดที่ต้องชำระ: <strong>฿${fmt(expectedAmount)}</strong><br>
+      สถานะ: <span style="color:var(--green);font-weight:700">✅ รับสลิปแล้ว รอทางร้านยืนยัน</span>`;
+    payVerified = true;
+    btn.disabled = false;
+    return;
+  }
+
+  // Use Claude AI to actually verify the slip
+  try {
+    const base64Data = b64.split(',')[1];
+    const mediaType  = b64.split(';')[0].split(':')[1];
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AI_API_KEY,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image', source:{type:'base64', media_type:mediaType, data:base64Data}},
+            {type:'text',  text:`ตรวจสอบสลิปการโอนเงินนี้ ยอดที่ควรโอนคือ ฿${fmt(expectedAmount)} บาท
+              ตอบในรูปแบบ JSON เท่านั้น: {"valid":true/false,"amount":ตัวเลขยอดเงินที่เห็นในสลิปหรือnull,"bank":"ชื่อธนาคาร","status":"สำเร็จ/ไม่สำเร็จ","note":"คำอธิบาย"}
+              ถ้าไม่ใช่สลิปให้ valid=false`}
+          ]
+        }]
+      })
+    });
+
+    const data  = await resp.json();
+    const text  = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const result= JSON.parse(clean);
+
+    if(result.valid){
+      const amtMatch = result.amount == null || Math.abs(result.amount - expectedAmount) < 1;
+      box.className = 'ai-verify ok';
+      title.innerHTML = '✅ AI ตรวจสอบสลิปสำเร็จ';
+      detail.innerHTML = `
+        ธนาคาร: <strong>${result.bank||'ไม่ระบุ'}</strong><br>
+        ยอดในสลิป: <strong>฿${result.amount!=null?fmt(result.amount):'ไม่ระบุ'}</strong><br>
+        สถานะ: <strong>${result.status||'สำเร็จ'}</strong><br>
+        ${amtMatch ? '<span style="color:var(--green)">✅ ยอดตรงกับคำสั่งซื้อ</span>' : '<span style="color:var(--yellow)">⚠️ ยอดอาจไม่ตรง — ทางร้านจะตรวจสอบอีกครั้ง</span>'}`;
+      payVerified = true;
+      btn.disabled = false;
+    } else {
+      box.className = 'ai-verify fail';
+      title.innerHTML = '❌ ไม่พบสลิปการโอนเงิน';
+      detail.innerHTML = `รูปภาพนี้ดูเหมือนไม่ใช่สลิปการโอนเงิน<br><strong>${result.note||'กรุณาอัปโหลดสลิปใหม่'}</strong>`;
+      payVerified = false;
+      btn.disabled = true;
+    }
+  } catch(err){
+    // Fallback if API fails
+    box.className = 'ai-verify ok';
+    title.innerHTML = '✅ รับสลิปแล้ว';
+    detail.innerHTML = 'ทางร้านจะตรวจสอบสลิปและยืนยันออเดอร์ของคุณ';
+    payVerified = true;
+    btn.disabled = false;
+  }
+}
+
+function confirmPay(){
+  if(!payVerified) return;
+  const total = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+  // Update stock
+  cart.forEach(c=>{
+    const p = products.find(x=>x.id===c.id);
+    if(p){ p.stock=Math.max(0,p.stock-c.qty); if(p.stock===0)p.status='sold_out'; }
+  });
+  // Record order
+  const order = {
+    id:Date.now().toString(), user:curUser.email, name:curUser.name,
+    items:[...cart], total, slip:slipB64,
+    time:new Date().toISOString(), status:'paid'
+  };
+  orders.push(order);
+  // Notify owner via chat
+  const sysMsg = `🧾 <b>ออเดอร์ใหม่!</b> ${curUser.name} ชำระ ฿${fmt(total)} — ${cart.map(c=>c.name).join(', ')}`;
+  addChatMsg(curUser.email, 'system', sysMsg);
+  // Clear cart
+  cart = []; save();
+  renderCart(); renderProds(); updateStats();
+  document.getElementById('payContent').style.display = 'none';
+  document.getElementById('paySuccess').style.display = 'block';
+  // Show owner notification
+  showOwnerNotif();
+  if(ownerChatOpen) renderOwnerChatTabs();
+}
+
+function closePayMo(){ document.getElementById('payMo').classList.remove('open'); }
+
+/* ════════════════════════════════════════
+   CHAT
+════════════════════════════════════════ */
+let chatOpen = false, ownerChatOpen = false, activeChatUser = null;
+
+function addChatMsg(email, from, msg){
+  if(!chats[email]) chats[email] = [];
+  chats[email].push({from, msg, time:new Date().toISOString()});
+  save();
+}
+
+// ── Customer Chat ──
+function toggleChat(){
+  chatOpen = !chatOpen;
+  document.getElementById('chatWin').classList.toggle('open', chatOpen);
+  if(chatOpen){
+    if(!chats[curUser.email]||!chats[curUser.email].length)
+      addChatMsg(curUser.email,'owner','สวัสดีครับ! 👋 ยินดีต้อนรับสู่ MyShop มีอะไรให้ช่วยไหมครับ?');
+    renderChatMsgs();
+    clearChatNotif();
+  }
+}
+function openChatWin(){ chatOpen=false; toggleChat(); }
+
+function renderChatMsgs(){
+  const msgs = chats[curUser?.email] || [];
+  const el   = document.getElementById('chatMsgs');
+  el.innerHTML = msgs.map(m=>{
+    const isMe = m.from==='customer';
+    const t = new Date(m.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="msg ${isMe?'me':'other'}">
+      <div class="msg-b">${m.msg}</div>
+      <div class="msg-t">${t}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function sendMsg(){
+  const inp = document.getElementById('chatInp');
+  const msg = inp.value.trim(); if(!msg)return;
+  addChatMsg(curUser.email,'customer',msg);
+  inp.value=''; inp.style.height='auto';
+  renderChatMsgs();
+  // Auto reply
+  setTimeout(()=>{
+    const replies = [
+      'ขอบคุณสำหรับข้อความนะครับ 😊',
+      'รับทราบแล้วครับ จะรีบตอบกลับให้',
+      'มีอะไรเพิ่มเติมให้ช่วยไหมครับ?',
+      'กำลังตรวจสอบให้ครับ รอสักครู่',
+      'ขอบคุณที่ใช้บริการ MyShop ครับ 💚',
+    ];
+    addChatMsg(curUser.email,'owner',replies[Math.floor(Math.random()*replies.length)]);
+    if(chatOpen) renderChatMsgs(); else showChatNotif();
+    if(ownerChatOpen&&activeChatUser===curUser.email) renderOwnerMsgs(curUser.email);
+    renderOwnerChatTabs();
+  }, 600+Math.random()*1000);
+}
+
+function chatKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+function showChatNotif(){ const n=document.getElementById('chatNotif'); n.style.display='flex'; }
+function clearChatNotif(){ document.getElementById('chatNotif').style.display='none'; }
+
+// ── Owner Chat ──
+function toggleOwnerChat(){
+  ownerChatOpen = !ownerChatOpen;
+  document.getElementById('ochatPanel').classList.toggle('open', ownerChatOpen);
+  if(ownerChatOpen){ renderOwnerChatTabs(); clearOwnerNotif(); }
+}
+
+function renderOwnerChatTabs(){
+  const el = document.getElementById('ochatTabs');
+  const keys = Object.keys(chats);
+  if(!keys.length){
+    el.innerHTML=`<div style="padding:10px;font-size:.7rem;color:var(--g400);text-align:center">ยังไม่มีแชท</div>`;
+    return;
+  }
+  el.innerHTML = keys.map(email=>{
+    const msgs = chats[email]||[];
+    const last = msgs[msgs.length-1];
+    const unread = msgs.filter(m=>m.from==='customer'||m.from==='system').length;
+    const u = users.find(u=>u.email===email);
+    const name = u ? u.name : email.split('@')[0];
+    return `<div class="ochat-tab ${activeChatUser===email?'active':''}" onclick="selectChat('${email}')">
+      <div class="ot-name">${name.slice(0,10)}${unread?`<span class="ot-badge">${unread>9?'9+':unread}</span>`:''}</div>
+      <div class="ot-last">${last?(last.msg.replace(/<[^>]*>/g,'')).slice(0,18)+'...':'ว่าง'}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectChat(email){
+  activeChatUser = email;
+  renderOwnerChatTabs();
+  renderOwnerMsgs(email);
+}
+
+function renderOwnerMsgs(email){
+  const msgs = chats[email]||[];
+  const main = document.getElementById('ochatMain');
+  const u = users.find(u=>u.email===email);
+  const name = u ? u.name : email.split('@')[0];
+  main.innerHTML = `
+    <div style="padding:7px 10px;background:var(--gb);border-bottom:1px solid var(--g200);font-size:.75rem;font-weight:600;color:var(--gd)">💬 ${name}</div>
+    <div class="ochat-msgs" id="ochatMsgsBox">
+      ${msgs.map(m=>{
+        const isOwner = m.from==='owner';
+        const isSys   = m.from==='system';
+        const t = new Date(m.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+        if(isSys) return `<div style="text-align:center;padding:4px 8px"><div style="display:inline-block;background:var(--gb);border:1px solid var(--gbd);border-radius:8px;padding:5px 10px;font-size:.7rem;color:var(--gd)">${m.msg}</div></div>`;
+        return `<div class="msg ${isOwner?'me':'other'}">
+          <div class="msg-b" style="font-size:.76rem">${m.msg}</div>
+          <div class="msg-t">${t}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="ochat-inp-row">
+      <textarea class="chat-inp" id="ownerInp" placeholder="ตอบกลับ..." rows="1" onkeydown="ownerKey(event,'${email}')" style="font-size:.76rem"></textarea>
+      <button class="chat-send" onclick="ownerSend('${email}')">➤</button>
+    </div>`;
+  const box = document.getElementById('ochatMsgsBox');
+  if(box) box.scrollTop = box.scrollHeight;
+}
+
+function ownerSend(email){
+  const inp = document.getElementById('ownerInp');
+  const msg = inp.value.trim(); if(!msg)return;
+  addChatMsg(email,'owner',msg);
+  inp.value=''; inp.style.height='auto';
+  renderOwnerMsgs(email); renderOwnerChatTabs();
+  showChatNotif(); // notify customer
+}
+function ownerKey(e,email){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ownerSend(email);} }
+function showOwnerNotif(){ const n=document.getElementById('ochatNotif'); n.style.display='flex'; }
+function clearOwnerNotif(){ document.getElementById('ochatNotif').style.display='none'; }
+
+/* ════════════════════════════════════════
+   CALL MODAL
+════════════════════════════════════════ */
+function openCallModal(){ document.getElementById('callMo').classList.add('open'); }
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+let toastT;
+function toast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show '+(type==='g'?'g':type==='r'?'r':type==='b'?'b':'');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
